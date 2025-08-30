@@ -33,6 +33,6 @@ foreach ($user in $users) {
 
     # Report user if any flags
     if ($flags.Count -gt 0) {
-        Write-Output "⚠️  $($user.Name): $($flags -join ', ')"
+        Write-Output "WARNING: $($user.Name): $($flags -join ', ')"
     }
 }

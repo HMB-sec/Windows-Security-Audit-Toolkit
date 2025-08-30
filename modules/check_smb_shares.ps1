@@ -1,24 +1,32 @@
 Write-Output "=== SMB Share Exposure Check ==="
 
-# Get list of shares
-$shares = Get-SmbShare | Where-Object { $_.Name -ne "IPC$" -and $_.Name -ne "ADMIN$" -and $_.Name -ne "C$" }
+try {
+    # Get list of SMB shares excluding default system shares
+    $shares = Get-SmbShare | Where-Object { $_.Name -notin @("IPC$", "ADMIN$", "C$") }
 
-if ($shares.Count -eq 0) {
-    Write-Output "No user-created SMB shares found. PASS"
-} else {
-    foreach ($share in $shares) {
-        $access = Get-SmbShareAccess -Name $share.Name
-        $isExposed = $false
+    if (-not $shares -or $shares.Count -eq 0) {
+        Write-Output "No user-created SMB shares found. PASS"
+    } else {
+        foreach ($share in $shares) {
+            try {
+                $access = Get-SmbShareAccess -Name $share.Name
+                $isExposed = $false
 
-        foreach ($entry in $access) {
-            if ($entry.AccountName -eq "Everyone" -and $entry.AccessControlType -eq "Allow") {
-                Write-Output "WARNING: Share '$($share.Name)' is accessible to Everyone"
-                $isExposed = $true
+                foreach ($entry in $access) {
+                    if ($entry.AccountName -eq "Everyone" -and $entry.AccessControlType -eq "Allow") {
+                        Write-Output "WARNING: Share '$($share.Name)' is accessible to Everyone"
+                        $isExposed = $true
+                    }
+                }
+
+                if (-not $isExposed) {
+                    Write-Output "Share '$($share.Name)' permissions appear safe"
+                }
+            } catch {
+                Write-Output "ERROR: Could not retrieve access rules for share '$($share.Name)'"
             }
         }
-
-        if (-not $isExposed) {
-            Write-Output "Share '$($share.Name)' permissions appear safe"
-        }
     }
+} catch {
+    Write-Output "ERROR: Failed to enumerate SMB shares."
 }

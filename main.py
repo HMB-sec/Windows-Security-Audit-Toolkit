@@ -32,7 +32,7 @@ def main():
     os.makedirs("results", exist_ok=True)
     report_file = "results/audit_report.txt"
 
-    print("🔍 Running Windows Security Audit...")
+    print("Running Windows Security Audit...")
 
     checks = [
         "modules/check_uac.ps1",
@@ -59,7 +59,7 @@ def main():
     with open(report_file, "w", encoding="utf-8") as f:
         f.write(report)
 
-    print(f"✅ Audit complete. Report saved to {report_file}")
+    print(f"Audit complete. Report saved to {report_file}")
 
 
 if __name__ == "__main__":

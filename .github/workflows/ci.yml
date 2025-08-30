@@ -1,4 +1,4 @@
-name: Windows Security Audit Toolkit CI
+name: Windows Security Audit CI
 
 on:
   push:
@@ -8,30 +8,30 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: '3.x'
 
-      - name: Install dependencies (if any)
+      - name: Install dependencies
         run: |
-          if [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          else
-            echo "No requirements.txt, skipping dependency installation"
-          fi
-
-      - name: Lint code with flake8
-        run: |
+          python -m pip install --upgrade pip
           pip install flake8
-          flake8 . || true   # don't fail yet, just show warnings
 
-      - name: Run main script
-        run: |
-          python main.py || echo "main.py did not execute successfully, check logs"
+      - name: Run flake8 (linting)
+        run: flake8 .
+
+      - name: Run Windows Security Audit
+        run: python main.py
+
+      - name: Upload Audit Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-report
+          path: results/audit_report.txt

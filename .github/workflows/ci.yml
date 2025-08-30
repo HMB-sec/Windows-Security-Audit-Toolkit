@@ -19,13 +19,31 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install flake8
 
-      - name: Run flake8 (linting)
+      - name: Run flake8 (Python linting)
         run: flake8 .
+
+      # --- PowerShell linting starts here ---
+      - name: Install PSScriptAnalyzer
+        run: Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+        shell: pwsh
+
+      - name: Run PSScriptAnalyzer (PowerShell linting)
+        run: |
+          $results = Invoke-ScriptAnalyzer -Path ./ -Recurse
+          if ($results.Count -gt 0) {
+            Write-Host "PSScriptAnalyzer found issues:"
+            $results | Format-Table -AutoSize
+            exit 1  # fail the workflow
+          } else {
+            Write-Host "No PowerShell linting issues found."
+          }
+        shell: pwsh
+      # --- PowerShell linting ends here ---
 
       - name: Run Windows Security Audit
         run: python main.py
